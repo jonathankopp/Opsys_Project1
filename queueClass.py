@@ -6,14 +6,14 @@ class customQueue:
 	#depending on what the burst is it will add to the queue and do burst specific functions
 	def add(self,process):
 		if self.type == "RR":
-			queue.append(process)
+			self.queue.append(process)
 			return 1
 		elif self.type == "SRT" or self.type == "SJF":
-			queue.append(process)
-			queue = sorted(queue, key=lambda x: x.timeRemaining, reverse=False)
+			self.queue.append(process)
+			self.queue = sorted(self.queue, key=lambda x: x.timeRemaining, reverse=False)
 			return 1
 		elif self.type == "FCFS":
-			queue.append(process)
+			self.queue.append(process)
 			return 1
 		else:
 			print("ERROR::ERROR::ERROR: WRONG TYPE CANNOT COMPLETE")
