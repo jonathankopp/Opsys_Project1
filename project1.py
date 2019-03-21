@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
 	time = 0
 	while not cpu.isDone() or time == 0:
-		cpu.update()
+		cpu.update(time)
 		for process in processes:
 			if process.arrivalTime == time:
 				cpu.add(process)

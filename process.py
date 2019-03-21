@@ -8,9 +8,9 @@ class process:
 		self.arrivalTime = aTime
 		self.timeFinished = -9999
 
-	def isDone(self):
+	def isDone(self, time):
 		if(len(self.ioBursts) == 0 and len(self.cpuBursts) == 0):
-			print("["+self.uID+" is done]")
+			print("["+self.uID+" is done at "+str(time)+"]")
 			return True
 		return False
 

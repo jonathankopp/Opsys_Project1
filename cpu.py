@@ -4,7 +4,7 @@ class cpu:
 		self.wait = []
 		self.type = cpu_type
 
-	def update(self):
+	def update(self, time):
 		remove = []
 		for w in self.wait:
 			w.ioBursts[0] -= 1
@@ -21,7 +21,7 @@ class cpu:
 			if (r.cpuBursts[0] == 0):
 				r.cpuBurstFinished()
 				self.queue.remove(r)
-				if(not r.isDone()):
+				if(not r.isDone(time)):
 					self.wait.append(r)
 
 			
