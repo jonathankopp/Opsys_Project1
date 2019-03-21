@@ -62,7 +62,5 @@ if __name__ == "__main__":
 				cpu.add(process)
 				print("Process " + process.uID + " added at " + str(time))
 		time += 1
-		if time > 1000:
-			break
 
 	

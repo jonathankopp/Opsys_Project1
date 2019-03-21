@@ -5,23 +5,27 @@ class cpu:
 		self.type = cpu_type
 
 	def update(self):
+		remove = []
 		for w in self.wait:
 			w.ioBursts[0] -= 1
 			#TODO: Tiebreakers for processes finishing at the same time
 			if w.ioBursts[0] == 0:
+				remove.append(w)
 				self.queue.append(w)
-				#V could mess up iteration V
 				self.wait.remove(w)
 				w.ioBurstFinished()
+
 		if (len(self.queue) > 0):
 			r = self.queue[0]
 			r.cpuBursts[0] -=1
 			if (r.cpuBursts[0] == 0):
 				r.cpuBurstFinished()
-				if(r.isDone()):
-					self.queue.remove(r)
-				else:
+				self.queue.remove(r)
+				if(not r.isDone()):
 					self.wait.append(r)
+
+			
+				
 
 	def isDone(self):
 		if(len(self.queue) == 0 and len(self.wait) == 0):
