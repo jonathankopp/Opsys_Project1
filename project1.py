@@ -32,6 +32,7 @@ if __name__ == "__main__":
 
 	cpu = customQueue("SRT")
 
+	processes = []
 	for i in range(numProcesses):
 		# r = rand.drand()
 		r = random.uniform(0, 1)
@@ -49,6 +50,18 @@ if __name__ == "__main__":
 				burst = math.ceil(-math.log(random.uniform(0, 1)))
 				ioBursts.append(burst)
 		aTime = math.floor(x)
-		cpu.add(process("A"+str(i), cpuBursts, ioBursts, aTime))
+		processes.append(process("A"+str(i), cpuBursts, ioBursts, aTime))
 
-	print(cpu)
+	print(processes)
+
+	time = 0
+	while True:
+		for process in processes:
+			if process.arrivalTime == time:
+				cpu.add(process)
+				print("Process " + process.uID + " added at " + str(time))
+		time += 1
+		if time > 1000:
+			break
+
+	
