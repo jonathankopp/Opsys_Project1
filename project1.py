@@ -30,7 +30,7 @@ if __name__ == "__main__":
 	alpha = float(sys.argv[6]) if len(sys.argv) > 6 else 0.0
 	rr = sys.argv[7] if len(sys.argv) > 7 else "END"
 
-	cpu = cpu("SRT")
+	cpu = cpu("SRT", contextSwitch)
 
 	processes = []
 	for i in range(numProcesses):
@@ -56,11 +56,11 @@ if __name__ == "__main__":
 
 	time = 0
 	while not cpu.isDone() or time == 0:
-		cpu.update(time)
+		t = cpu.update(time)
 		for process in processes:
 			if process.arrivalTime == time:
 				cpu.add(process)
 				print("Process " + process.uID + " added at " + str(time))
-		time += 1
+		time += t
 
 	

@@ -1,8 +1,9 @@
 class cpu:
-	def __init__(self, cpu_type):
+	def __init__(self, cpu_type, contextSwitch):
 		self.queue = []
 		self.wait = []
 		self.type = cpu_type
+		self.contextSwitch = contextSwitch
 
 	def update(self, time):
 		remove = []
@@ -15,14 +16,17 @@ class cpu:
 				self.wait.remove(w)
 				w.ioBurstFinished()
 
-		if (len(self.queue) > 0):
+		if len(self.queue) > 0:
 			r = self.queue[0]
 			r.cpuBursts[0] -=1
-			if (r.cpuBursts[0] == 0):
+			if r.cpuBursts[0] == 0:
 				r.cpuBurstFinished()
 				self.queue.remove(r)
-				if(not r.isDone(time)):
+				if not r.isDone(time):
 					self.wait.append(r)
+				else:
+					return self.contextSwitch + 1
+		return 1
 
 			
 				
