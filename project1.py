@@ -2,8 +2,9 @@ import sys
 
 import random
 import math
-from cpu import cpuFCFS
+from cpu import cpuFCFS, cpuSJF
 from process import process
+import copy
 
 ####
 ###  Argumnets <random number generator seed> <arrival time lambda> <random number max> <num processes> <context switch time> <exponential averaging alpha> <time slice> <RR BEGINNING/END>
@@ -62,4 +63,7 @@ if __name__ == "__main__":
 
 
 	cpu = cpuFCFS(contextSwitch)
-	run(cpu, processes)
+	run(cpu, copy.deepcopy(processes))
+
+	cpu = cpuSJF(contextSwitch)
+	run(cpu, copy.deepcopy(processes))

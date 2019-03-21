@@ -4,7 +4,6 @@ class process:
 		self.uID = uID
 		self.cpuBursts = cpuBursts
 		self.ioBursts = ioBursts
-		self.timeRemaining = cpuBursts
 		self.arrivalTime = aTime
 		self.timeFinished = -9999
 
