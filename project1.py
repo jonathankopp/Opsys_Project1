@@ -1,7 +1,7 @@
 import sys
 import random
 import math
-from queueClass import customQueue
+from cpu import customQueue
 from process import process
 
 ####
@@ -33,9 +33,10 @@ if __name__ == "__main__":
 
 	for i in range(numProcesses):
 		# r = rand.drand()
+		print(str(cpu))
 		r = random.uniform(0, 1)
 		x = -math.log(r)
 		if x > randMax:
 			i -= 1
 			continue
-		cpu.add(process("A", 10, x, 0))
+		cpu.add(process("A"+str(i), 10, x, 0))

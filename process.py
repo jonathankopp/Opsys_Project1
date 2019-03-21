@@ -6,4 +6,10 @@ class process:
 		self.burstTime = burstTime
 		self.timeRemaining = burstTime
 		self.arrivalTime = aTime
+		self.timeFinished = -9999
 
+	def timeRan(self, time, realTime):
+		self.timeRemaining-=time
+		if (timeRemaining == 0):
+			self.state="finished"
+			self.timeFinished = realTime

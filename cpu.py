@@ -60,6 +60,6 @@ class customQueue:
 			return ret+" <empty>]"
 
 		for p in self.queue:
-			ret+=" %s",p.uID
+			ret+=" "+p.uID
 		ret+="]"
 		return ret
