@@ -2,7 +2,7 @@ import sys
 
 import random
 import math
-from cpu import customQueue
+from cpu import cpu
 from process import process
 
 ####
@@ -30,7 +30,7 @@ if __name__ == "__main__":
 	alpha = float(sys.argv[6]) if len(sys.argv) > 6 else 0.0
 	rr = sys.argv[7] if len(sys.argv) > 7 else "END"
 
-	cpu = customQueue("SRT")
+	cpu = cpu("SRT")
 
 	processes = []
 	for i in range(numProcesses):
@@ -52,10 +52,11 @@ if __name__ == "__main__":
 		aTime = math.floor(x)
 		processes.append(process("A"+str(i), cpuBursts, ioBursts, aTime))
 
-	print(processes)
+	# print(processes)
 
 	time = 0
-	while True:
+	while not cpu.isDone() or time == 0:
+		cpu.update()
 		for process in processes:
 			if process.arrivalTime == time:
 				cpu.add(process)

@@ -4,12 +4,24 @@ class process:
 		self.uID = uID
 		self.cpuBursts = cpuBursts
 		self.ioBursts = ioBursts
-		self.timeRemaining = sum(cpuBursts) + sum(ioBursts)
+		self.timeRemaining = cpuBursts
 		self.arrivalTime = aTime
 		self.timeFinished = -9999
 
-	def timeRan(self, time, realTime):
-		self.timeRemaining-=time
-		if (timeRemaining == 0):
-			self.state="finished"
-			self.timeFinished = realTime
+	def isDone(self):
+		if(len(self.ioBursts) == 0 and len(self.cpuBursts) == 0):
+			print("["+self.uID+" is done]")
+			return True
+		return False
+
+	def ioBurstFinished(self):
+		if(len(self.ioBursts) == 1):
+			self.ioBursts = []
+			return
+		self.ioBursts = self.ioBursts[1:]
+
+	def cpuBurstFinished(self):
+		if(len(self.cpuBursts) == 1):
+			self.cpuBursts = []
+			return
+		self.cpuBursts = self.cpuBursts[1:]

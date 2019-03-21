@@ -1,7 +1,34 @@
-class customQueue:
+class cpu:
 	def __init__(self, cpu_type):
 		self.queue = []
+		self.wait = []
 		self.type = cpu_type
+
+	def update(self):
+		for w in self.wait:
+			w.ioBursts[0] -= 1
+			#TODO: Tiebreakers for processes finishing at the same time
+			if w.ioBursts[0] == 0:
+				self.queue.append(w)
+				#V could mess up iteration V
+				self.wait.remove(w)
+				w.ioBurstFinished()
+		if (len(self.queue) > 0):
+			r = self.queue[0]
+			r.cpuBursts[0] -=1
+			if (r.cpuBursts[0] == 0):
+				r.cpuBurstFinished()
+				if(r.isDone()):
+					self.queue.remove(r)
+				else:
+					self.wait.append(r)
+
+	def isDone(self):
+		if(len(self.queue) == 0 and len(self.wait) == 0):
+			return True
+		return False
+
+
 	
 	#depending on what the burst is it will add to the queue and do burst specific functions
 	def add(self,process):
@@ -34,6 +61,7 @@ class customQueue:
 			x+=1
 		self.queue = Q
 		return ret
+
 
 	#if it is not in the queue it will return false
 	def inQueue(self, process):
