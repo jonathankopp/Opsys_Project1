@@ -2,7 +2,7 @@ import sys
 
 import random
 import math
-from cpu import cpu
+from cpu import cpuFCFS
 from process import process
 
 ####
@@ -19,6 +19,16 @@ from process import process
 # 		self.seed = (self.a * self.seed + self.c) % 2**48
 # 		return self.seed
 
+def run(cpu, processes):
+	time = 0
+	while not cpu.isDone() or time == 0:
+		t = cpu.update(time)
+		for process in processes:
+			if process.arrivalTime == time:
+				cpu.add(process)
+				print("Process " + process.uID + " added at " + str(time))
+		time += t
+
 if __name__ == "__main__":
 	seed = int(sys.argv[1])
 	# rand = rand(seed)
@@ -29,8 +39,6 @@ if __name__ == "__main__":
 	contextSwitch = int(sys.argv[5])
 	alpha = float(sys.argv[6]) if len(sys.argv) > 6 else 0.0
 	rr = sys.argv[7] if len(sys.argv) > 7 else "END"
-
-	cpu = cpu("SRT", contextSwitch)
 
 	processes = []
 	for i in range(numProcesses):
@@ -52,15 +60,6 @@ if __name__ == "__main__":
 		aTime = math.floor(x)
 		processes.append(process("A"+str(i), cpuBursts, ioBursts, aTime))
 
-	# print(processes)
 
-	time = 0
-	while not cpu.isDone() or time == 0:
-		t = cpu.update(time)
-		for process in processes:
-			if process.arrivalTime == time:
-				cpu.add(process)
-				print("Process " + process.uID + " added at " + str(time))
-		time += t
-
-	
+	cpu = cpuFCFS(contextSwitch)
+	run(cpu, processes)

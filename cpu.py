@@ -1,9 +1,64 @@
 class cpu:
-	def __init__(self, cpu_type, contextSwitch):
+	def __init__(self, contextSwitch):
 		self.queue = []
 		self.wait = []
-		self.type = cpu_type
 		self.contextSwitch = contextSwitch
+
+	def isDone(self):
+		if(len(self.queue) == 0 and len(self.wait) == 0):
+			return True
+		return False
+
+	# #will return the 0 index (front of the queue) and remove it from the queue
+	# def pop(self):
+	# 	if(len(self.queue) == 0):
+	# 		return None
+	# 	Q=[]
+	# 	x = 0
+	# 	ret = None
+	# 	for p in self.queue:
+	# 		if(x != 0):
+	# 			Q.append(p)
+	# 		else:
+	# 			ret = p
+	# 		x+=1
+	# 	self.queue = Q
+	# 	return ret
+
+
+	# #if it is not in the queue it will return false
+	# def inQueue(self, process):
+	# 	for p in self.queue:
+	# 		if(process.uID == p.uID):
+	# 			return True
+	# 	return False
+
+	# #if id doesnt exsist it will return None	
+	# def removeByID(self, uID):
+	# 	Q = []
+	# 	ret = None
+	# 	for p in self.queue:
+	# 		if(p.uID != uID):
+	# 			Q.append(p)
+	# 		else:
+	# 			ret = p
+	# 	self.queue = Q
+	# 	return retdef
+
+	def __str__(self):
+		ret = "[Q"
+		if (len(self.queue) == 0):
+			return ret+" <empty>]"
+
+		for p in self.queue:
+			ret+=" "+p.uID
+		ret+="]"
+		return ret
+
+class cpuFCFS(cpu):
+	def __init__(self, contextSwitch):
+		super().__init__(contextSwitch)
+		self.cpuType = "FCFS"
 
 	def update(self, time):
 		remove = []
@@ -28,74 +83,45 @@ class cpu:
 					return self.contextSwitch + 1
 		return 1
 
-			
-				
+	def add(self, process):
+		self.queue.append(process)
+		return 1
 
-	def isDone(self):
-		if(len(self.queue) == 0 and len(self.wait) == 0):
-			return True
-		return False
+class cpuSJF(cpu):
+	def __init__(self, contextSwitch):
+		super().__init__(contextSwitch)
+		self.type = "SJF"
 
+	def update(self, time):
+		pass
 
-	
-	#depending on what the burst is it will add to the queue and do burst specific functions
-	def add(self,process):
-		if self.type == "RR":
-			self.queue.append(process)
-			return 1
-		elif self.type == "SRT" or self.type == "SJF":
-			self.queue.append(process)
-			self.queue = sorted(self.queue, key=lambda x: x.timeRemaining, reverse=False)
-			return 1
-		elif self.type == "FCFS":
-			self.queue.append(process)
-			return 1
-		else:
-			print("ERROR::ERROR::ERROR: WRONG TYPE CANNOT COMPLETE")
-			return 0
+	def add(self, process):
+		self.queue.append(process)
+		self.queue = sorted(self.queue, key=lambda x: x.timeRemaining, reverse=False)
+		return 1
 
-	#will return the 0 index (front of the queue) and remove it from the queue
-	def pop(self):
-		if(len(self.queue) == 0):
-			return None
-		Q=[]
-		x = 0
-		ret = None
-		for p in self.queue:
-			if(x != 0):
-				Q.append(p)
-			else:
-				ret = p
-			x+=1
-		self.queue = Q
-		return ret
+class cpuSRT(cpu):
+	def __init__(self, contextSwitch):
+		super().__init__(contextSwitch)
+		self.type = "SRT"
 
+	def update(self, time):
+		pass
 
-	#if it is not in the queue it will return false
-	def inQueue(self, process):
-		for p in self.queue:
-			if(process.uID == p.uID):
-				return True
-		return False
+	def add(self, process):
+		self.queue.append(process)
+		self.queue = sorted(self.queue, key=lambda x: x.timeRemaining, reverse=False)
+		return 1
 
-	#if id doesnt exsist it will return None	
-	def removeByID(self, uID):
-		Q = []
-		ret = None
-		for p in self.queue:
-			if(p.uID != uID):
-				Q.append(p)
-			else:
-				ret = p
-		self.queue = Q
-		return retdef
+class cpuRR(cpu):
+	def __init__(self, contextSwitch, timeSlice):
+		super().__init__(contextSwitch)
+		self.type = "RR"
+		self.timeSlice = timeSlice
 
-	def __str__(self):
-		ret = "[Q"
-		if (len(self.queue) == 0):
-			return ret+" <empty>]"
+	def update(self, time):
+		pass
 
-		for p in self.queue:
-			ret+=" "+p.uID
-		ret+="]"
-		return ret
+	def add(self, process):
+		self.queue.append(process)
+		return 1
