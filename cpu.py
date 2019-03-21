@@ -2,7 +2,7 @@ class customQueue:
 	def __init__(self, cpu_type):
 		self.queue = []
 		self.type = cpu_type
-
+	
 	#depending on what the burst is it will add to the queue and do burst specific functions
 	def add(self,process):
 		if self.type == "RR":
