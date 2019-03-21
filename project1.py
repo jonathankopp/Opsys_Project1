@@ -10,30 +10,28 @@ import copy
 ###  Argumnets <random number generator seed> <arrival time lambda> <random number max> <num processes> <context switch time> <exponential averaging alpha> <time slice> <RR BEGINNING/END>
 ##
 
-# class rand:
-# 	def __init__(self, seed):
-# 		self.seed = seed
-# 		self.a = 0x5DEECE66D
-# 		self.c = 0xB
+class rand:
+	def __init__(self, seed):
+		self.seed = seed
+		self.a = 0x5DEECE66D
+		self.c = 0xB
 
-# 	def drand(self):
-# 		self.seed = (self.a * self.seed + self.c) % 2**48
-# 		return self.seed
+	def drand(self):
+		self.seed = (self.a * self.seed + self.c) % 2**48
+		return self.seed / 2**48
 
-def run(cpu, processes):
+def run(cpu, processes, maxATime):
 	time = 0
-	while not cpu.isDone() or time == 0:
-		t = cpu.update(time)
+	while not cpu.isDone() or time <= maxATime:
+		cpu.update(time)
 		for process in processes:
 			if process.arrivalTime == time:
 				cpu.add(process)
-				print("Process " + process.uID + " added at " + str(time))
-		time += t
+		time += 1
 
 if __name__ == "__main__":
 	seed = int(sys.argv[1])
-	# rand = rand(seed)
-	random.seed(seed)
+	rand = rand(seed)
 	lambdaa = float(sys.argv[2])
 	randMax = int(sys.argv[3])
 	numProcesses = int(sys.argv[4])
@@ -42,9 +40,9 @@ if __name__ == "__main__":
 	rr = sys.argv[7] if len(sys.argv) > 7 else "END"
 
 	processes = []
+	maxATime = 0
 	for i in range(numProcesses):
-		# r = rand.drand()
-		r = random.uniform(0, 1)
+		r = rand.drand()
 		x = -math.log(r)
 		if x > randMax:
 			i -= 1
@@ -59,11 +57,13 @@ if __name__ == "__main__":
 				burst = math.ceil(-math.log(random.uniform(0, 1)))
 				ioBursts.append(burst)
 		aTime = math.floor(x)
+		maxATime = max(maxATime, aTime)
 		processes.append(process("A"+str(i), cpuBursts, ioBursts, aTime))
 
+	print("Context switch time: " + str(contextSwitch) + "ms")
 
 	cpu = cpuFCFS(contextSwitch)
-	run(cpu, copy.deepcopy(processes))
+	run(cpu, copy.deepcopy(processes), maxATime)
 
-	cpu = cpuSJF(contextSwitch)
-	run(cpu, copy.deepcopy(processes))
+	# cpu = cpuSJF(contextSwitch)
+	# run(cpu, copy.deepcopy(processes), maxATime)

@@ -4,9 +4,10 @@ class cpu:
 		self.ready = []
 		self.wait = []
 		self.contextSwitch = contextSwitch
+		self.switching = 0
 
 	def isDone(self):
-		if(len(self.ready) == 0 and len(self.wait) == 0):
+		if(len(self.ready) == 0 and len(self.wait) == 0) and self.running is None:
 			return True
 		return False
 
@@ -49,11 +50,11 @@ class cpu:
 	def __str__(self):
 		ret = "[Q"
 		if (len(self.ready) == 0):
-			return ret+" <empty>]"
+			return ret + " <empty>]"
 
 		for p in self.ready:
-			ret+=" "+p.uID
-		ret+="]"
+			ret += " " + p.uID
+		ret += "]"
 		return ret
 
 class cpuFCFS(cpu):
@@ -62,31 +63,40 @@ class cpuFCFS(cpu):
 		self.cpuType = "FCFS"
 
 	def update(self, time):
-		if self.running is None and len(self.ready) > 0:
-			self.running = self.ready[0]
-			self.ready.remove(self.running)
+		# If no process if running context switch the next process in
+		r = self.running
+		if r is None:
+			if len(self.ready) > 0:
+				r = self.ready[0]
+				print("time " + str(time) + "ms: Process " + r.uID + " started using CPU for " + str(r.cpuBursts[0]) + "ms burst " + str(self))
+				self.running = r
+				self.ready.remove(r)
+				self.switching = self.contextSwitch
+		# If process is switching decrement switch time
+		if self.switching >= 0:
+			self.switching -= 1
+		# If process is not switching, decrement process burst time
+		else:
+			r = self.running
+			# If process is running (not None) decrement process burst time
+			if not r is None:
+				r.cpuBursts[0] -=1
+				if r.cpuBursts[0] == 0:
+					r.cpuBurstFinished()
+					print("time " + str(time) + "ms: Process " + r.uID + " completed a CPU burst; " + str(len(r.cpuBursts)) + " bursts to go " + str(self))
+					self.running = None
+					if not r.isDone(time):
+						print("time " + str(time) + "ms: Process " + r.uID + " switching out of CPU; will block on I/O until time " + str(time + r.ioBursts[0]) + " " + str(self))
+						self.wait.append(r)
+		# Decrement time of everything in waiting
 		for w in self.wait:
 			w.ioBursts[0] -= 1
 			#TODO: Tiebreakers for processes finishing at the same time
 			if w.ioBursts[0] == 0:
+				w.ioBurstFinished()
+				print("time " + str(time) + "ms: Process " + w.uID + " completed I/0; added to ready queue " + str(self))
 				self.ready.append(w)
 				self.wait.remove(w)
-				w.ioBurstFinished()
-		r = self.running
-		if not r is None:
-			r.cpuBursts[0] -=1
-			if r.cpuBursts[0] == 0:
-				r.cpuBurstFinished()
-				if len(self.ready) > 0:
-					self.running = self.ready[0]
-					self.ready.remove(self.running)
-				else:
-					self.running = None
-				if not r.isDone(time):
-					self.wait.append(r)
-				else:
-					return self.contextSwitch + 1
-		return 1
 
 	def add(self, process):
 		self.ready.append(process)
@@ -97,31 +107,40 @@ class cpuSJF(cpu):
 		super().__init__(contextSwitch)
 
 	def update(self, time):
-		if self.running is None and len(self.ready) > 0:
-			self.running = self.ready[0]
-			self.ready.remove(self.running)
+		# If no process if running context switch the next process in
+		r = self.running
+		if r is None:
+			if len(self.ready) > 0:
+				r = self.ready[0]
+				print("time " + str(time) + "ms: Process " + r.uID + " started using CPU for " + str(r.cpuBursts[0]) + "ms burst " + str(self))
+				self.running = r
+				self.ready.remove(r)
+				self.switching = self.contextSwitch
+		# If process is switching decrement switch time
+		if self.switching >= 0:
+			self.switching -= 1
+		# If process is not switching, decrement process burst time
+		else:
+			r = self.running
+			# If process is running (not None) decrement process burst time
+			if not r is None:
+				r.cpuBursts[0] -=1
+				if r.cpuBursts[0] == 0:
+					r.cpuBurstFinished()
+					print("time " + str(time) + "ms: Process " + r.uID + " completed a CPU burst; " + str(len(r.cpuBursts)) + " bursts to go " + str(self))
+					self.running = None
+					if not r.isDone(time):
+						print("time " + str(time) + "ms: Process " + r.uID + " switching out of CPU; will block on I/O until time " + str(time + r.ioBursts[0]) + " " + str(self))
+						self.wait.append(r)
+		# Decrement time of everything in waiting
 		for w in self.wait:
 			w.ioBursts[0] -= 1
 			#TODO: Tiebreakers for processes finishing at the same time
 			if w.ioBursts[0] == 0:
+				w.ioBurstFinished()
+				print("time " + str(time) + "ms: Process " + w.uID + " completed I/0; added to ready queue " + str(self))
 				self.ready.append(w)
 				self.wait.remove(w)
-				w.ioBurstFinished()
-		r = self.running
-		if not r is None:
-			r.cpuBursts[0] -=1
-			if r.cpuBursts[0] == 0:
-				r.cpuBurstFinished()
-				if len(self.ready) > 0:
-					self.running = self.ready[0]
-					self.ready.remove(self.running)
-				else:
-					self.running = None
-				if not r.isDone(time):
-					self.wait.append(r)
-				else:
-					return self.contextSwitch + 1
-		return 1
 
 	def add(self, process):
 		self.ready.append(process)
