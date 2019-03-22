@@ -51,11 +51,13 @@ if __name__ == "__main__":
 		cpuBursts = []
 		ioBursts = []
 		for j in range(numBursts):
-			burst = math.ceil(-math.log(random.uniform(0, 1)))
+			burst = math.ceil(-math.log(rand.drand()))
 			cpuBursts.append(burst)
+			print(burst)
 			if j < numBursts -1:
-				burst = math.ceil(-math.log(random.uniform(0, 1)))
+				burst = math.ceil(-math.log(rand.drand()))
 				ioBursts.append(burst)
+				print(burst)
 		aTime = math.floor(x)
 		maxATime = max(maxATime, aTime)
 		processes.append(process("A"+str(i), cpuBursts, ioBursts, aTime))
