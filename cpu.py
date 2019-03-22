@@ -73,6 +73,7 @@ class cpuFCFS(cpu):
 				self.ready.remove(r)
 				self.switching = self.contextSwitch
 		# If process is switching decrement switch time
+		wait = []
 		if self.switching >= 0:
 			self.switching -= 1
 		# If process is not switching, decrement process burst time
@@ -88,8 +89,9 @@ class cpuFCFS(cpu):
 					if not r.isDone(time):
 						print("time " + str(time) + "ms: Process " + r.uID + " switching out of CPU; will block on I/O until time " + str(time + r.ioBursts[0]) + " " + str(self))
 						self.wait.append(r)
+						wait.append(r)
 		# Decrement time of everything in waiting
-		for w in self.wait:
+		for w in [w for w in self.wait if not w in wait]:
 			w.ioBursts[0] -= 1
 			#TODO: Tiebreakers for processes finishing at the same time
 			if w.ioBursts[0] == 0:
