@@ -9,7 +9,7 @@ class process:
 
 	def isDone(self, time):
 		if(len(self.ioBursts) == 0 and len(self.cpuBursts) == 0):
-			print("["+self.uID+" is done at "+str(time)+"]")
+			# print("["+self.uID+" is done at "+str(time)+"]")
 			return True
 		return False
 
