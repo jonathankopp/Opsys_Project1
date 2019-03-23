@@ -93,7 +93,7 @@ class cpuFCFS(cpu):
 					print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time, r.uID, len(r.cpuBursts), str(self)))
 					self.running = None
 					if not r.isDone(time):
-						print("time {}ms: Process {} switching out of CPU; will block on I/O until time {} ".format(time, r.uID, time + r.ioBursts[0], str(self)))
+						print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time, r.uID, time + r.ioBursts[0], str(self)))
 						self.wait.append(r)
 						wait.append(r)
 		# Decrement time of everything in waiting
