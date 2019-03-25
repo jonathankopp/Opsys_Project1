@@ -186,6 +186,7 @@ class cpuSRT(cpu):
 	def __init__(self, switchTime, alpha):
 		super().__init__(switchTime, alpha)
 		self.cpuType = "SRT"
+		self.preempted = []
 
 	def update(self, time):
 		# If process is switching decrement switch time
@@ -201,8 +202,13 @@ class cpuSRT(cpu):
 					r = self.ready[0]
 					self.running = r
 					self.ready.remove(r)
-					if time < 1000:
-						print("time {}ms: Process {} started using the CPU for {}ms burst {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
+					if r in self.preempted:
+						if time < 1000:
+							print("time {}ms: Process {} started using the CPU with {}ms remaining {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
+						self.preempted.remove(r)
+					else:
+						if time < 1000:
+							print("time {}ms: Process {} started using the CPU for {}ms burst {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
 					self.switching =+ self.switchTime // 2
 					self.switches += 1
 					self.bursts.append(r.cpuBursts[0])
@@ -234,8 +240,18 @@ class cpuSRT(cpu):
 				w.ioBurstFinished()
 				self.add(w)
 				self.wait.remove(w)
-				if time < 1000:
-					print("time {}ms: Process {} (tau {}ms) completed I/O; added to ready queue {}".format(time+1, w.uID, w.tau, str(self)))
+				# Handle preemptions
+				if (not self.running is None) and (w.tau < self.running.tau - (self.bursts[-1] - self.running.cpuBursts[0])):
+					self.preemptions += 1
+					self.switching =+ self.switchTime // 2
+					self.add(self.running)
+					self.preempted.append(self.running)
+					if time < 1000:
+						print("time {}ms: Process {} (tau {}ms) completed I/O and will preempt {} {}".format(time+1, w.uID, w.tau, self.running.uID, str(self)))
+					self.running = None
+				else:
+					if time < 1000:
+						print("time {}ms: Process {} (tau {}ms) completed I/O; added to ready queue {}".format(time+1, w.uID, w.tau, str(self)))
 
 	def add(self, process):
 		self.ready.append(process)
@@ -295,7 +311,7 @@ class cpuRR(cpu):
 				self.wait.remove(w)
 				if time < 1000:
 					print("time {}ms: Process {} completed I/O; added to ready queue {}".format(time+1, w.uID, str(self)))
-
+					
 	def add(self, process):
 		self.ready.append(process)
 		return 1
