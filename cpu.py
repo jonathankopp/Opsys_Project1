@@ -145,6 +145,7 @@ class cpuSJF(cpu):
 					self.switching =+ self.switchTime // 2
 					self.switches += 1
 					self.bursts.append(r.cpuBursts[0])
+					r.updateLastBurst()
 			# If process is running (not None) decrement process burst time
 			r = self.running
 			if not r is None:
@@ -204,6 +205,7 @@ class cpuSRT(cpu):
 					self.switching =+ self.switchTime // 2
 					self.switches += 1
 					self.bursts.append(r.cpuBursts[0])
+					r.updateLastBurst()
 			# If process is running (not None) decrement process burst time
 			r = self.running
 			if not r is None:

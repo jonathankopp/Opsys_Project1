@@ -11,6 +11,9 @@ class process:
 		self.tau = tau
 		self.lastBurst = 0
 
+	def updateLastBurst(self):
+		self.lastBurst = self.cpuBursts[0]
+
 	def recalculateTau(self, alpha):
 		self.tau = math.floor((alpha * self.lastBurst) + ((1-alpha) * self.tau))
 
@@ -31,4 +34,3 @@ class process:
 			self.cpuBursts = []
 			return
 		self.cpuBursts = self.cpuBursts[1:]
-		self.lastBurst = self.cpuBursts[0]
