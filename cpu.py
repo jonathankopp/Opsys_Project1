@@ -257,7 +257,7 @@ class cpuSRT(cpu):
 
 	def add(self, process):
 		self.ready.append(process)
-		self.ready = sorted(self.ready, key=lambda x: (x.tau, x.uID))
+		self.ready = sorted(self.ready, key=lambda x: (x.tau - (self.burstDict[self.running.uID] - self.running.cpuBursts[0]) if x is self.running else x.tau, x.uID))
 		return 1
 
 class cpuRR(cpu):
