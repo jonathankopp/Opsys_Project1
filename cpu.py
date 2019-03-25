@@ -1,4 +1,3 @@
-import time as sleep
 
 class cpu:
 	def __init__(self, switchTime):
@@ -98,12 +97,12 @@ class cpuFCFS(cpu):
 					self.running = None
 					if not r.isDone(time):
 						if time < 1000:
-							print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time, r.uID, len(r.cpuBursts), str(self)))
-							print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time, r.uID, time + r.ioBursts[0], str(self)))
+							print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time+1, r.uID, len(r.cpuBursts), str(self)))
+							print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time+1, r.uID, time+1+r.ioBursts[0]+self.switchTime//2, str(self)))
 						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
 						self.switchingOut = r
 					else:
-						print("time {}ms: Process {} terminated {}".format(time, r.uID, str(self)))
+						print("time {}ms: Process {} terminated {}".format(time+1, r.uID, str(self)))
 		# Decrement time of everything in waiting
 		for w in [w for w in self.wait if not w is self.switchingOut]:
 			w.ioBursts[0] -= 1
@@ -113,7 +112,7 @@ class cpuFCFS(cpu):
 				self.ready.append(w)
 				self.wait.remove(w)
 				if time < 1000:
-					print("time {}ms: Process {} completed I/O; added to ready queue {}".format(time, w.uID, str(self)))
+					print("time {}ms: Process {} completed I/O; added to ready queue {}".format(time+1, w.uID, str(self)))
 
 	def add(self, process):
 		self.ready.append(process)
@@ -132,6 +131,7 @@ class cpuSJF(cpu):
 		else:
 			self.switchingOut = None
 			# If no process if running context switch the next process in
+			self.ready = sorted(self.ready, key=lambda x: sum(x.cpuBursts))
 			r = self.running
 			if r is None:
 				if len(self.ready) > 0:
@@ -153,12 +153,12 @@ class cpuSJF(cpu):
 					self.running = None
 					if not r.isDone(time):
 						if time < 1000:
-							print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time, r.uID, len(r.cpuBursts), str(self)))
-							print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time, r.uID, time + r.ioBursts[0], str(self)))
+							print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time+1, r.uID, len(r.cpuBursts), str(self)))
+							print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time+1, r.uID, time+1+r.ioBursts[0]+self.switchTime//2, str(self)))
 						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
 						self.switchingOut = r
 					else:
-						print("time {}ms: Process {} terminated {}".format(time, r.uID, str(self)))
+						print("time {}ms: Process {} terminated {}".format(time+1, r.uID, str(self)))
 		# Decrement time of everything in waiting
 		for w in [w for w in self.wait if not w is self.switchingOut]:
 			w.ioBursts[0] -= 1
@@ -168,7 +168,7 @@ class cpuSJF(cpu):
 				self.ready.append(w)
 				self.wait.remove(w)
 				if time < 1000:
-					print("time {}ms: Process {} completed I/O; added to ready queue {}".format(time, w.uID, str(self)))
+					print("time {}ms: Process {} completed I/O; added to ready queue {}".format(time+1, w.uID, str(self)))
 
 	def add(self, process):
 		self.ready.append(process)
@@ -209,12 +209,12 @@ class cpuSRT(cpu):
 					self.running = None
 					if not r.isDone(time):
 						if time < 1000:
-							print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time, r.uID, len(r.cpuBursts), str(self)))
-							print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time, r.uID, time + r.ioBursts[0], str(self)))
+							print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time+1, r.uID, len(r.cpuBursts), str(self)))
+							print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time+1, r.uID, time+1+r.ioBursts[0]+self.switchTime//2, str(self)))
 						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
 						self.switchingOut = r
 					else:
-						print("time {}ms: Process {} terminated {}".format(time, r.uID, str(self)))
+						print("time {}ms: Process {} terminated {}".format(time+1, r.uID, str(self)))
 		# Decrement time of everything in waiting
 		for w in [w for w in self.wait if not w is self.switchingOut]:
 			w.ioBursts[0] -= 1
@@ -224,7 +224,7 @@ class cpuSRT(cpu):
 				self.ready.append(w)
 				self.wait.remove(w)
 				if time < 1000:
-					print("time {}ms: Process {} completed I/O; added to ready queue {}".format(time, w.uID, str(self)))
+					print("time {}ms: Process {} completed I/O; added to ready queue {}".format(time+1, w.uID, str(self)))
 
 	def add(self, process):
 		self.ready.append(process)
@@ -267,12 +267,12 @@ class cpuRR(cpu):
 					self.running = None
 					if not r.isDone(time):
 						if time < 1000:
-							print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time, r.uID, len(r.cpuBursts), str(self)))
-							print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time, r.uID, time + r.ioBursts[0], str(self)))
+							print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time+1, r.uID, len(r.cpuBursts), str(self)))
+							print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time+1, r.uID, time+1+r.ioBursts[0]+self.switchTime//2, str(self)))
 						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
 						self.switchingOut = r
 					else:
-						print("time {}ms: Process {} terminated {}".format(time, r.uID, str(self)))
+						print("time {}ms: Process {} terminated {}".format(time+1, r.uID, str(self)))
 		# Decrement time of everything in waiting
 		for w in [w for w in self.wait if not w is self.switchingOut]:
 			w.ioBursts[0] -= 1
@@ -282,7 +282,7 @@ class cpuRR(cpu):
 				self.ready.append(w)
 				self.wait.remove(w)
 				if time < 1000:
-					print("time {}ms: Process {} completed I/O; added to ready queue {}".format(time, w.uID, str(self)))
+					print("time {}ms: Process {} completed I/O; added to ready queue {}".format(time+1, w.uID, str(self)))
 
 	def add(self, process):
 		self.ready.append(process)
