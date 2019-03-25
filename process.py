@@ -10,6 +10,8 @@ class process:
 		self.timeFinished = -9999
 		self.tau = tau
 		self.lastBurst = 0
+		# Variables for simulation
+		self.waiting = 0
 
 	def updateLastBurst(self):
 		self.lastBurst = self.cpuBursts[0]

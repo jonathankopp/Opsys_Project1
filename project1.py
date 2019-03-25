@@ -45,6 +45,15 @@ def run(cpu, processes, maxATime):
 		time += 1
 	print("time {}ms: Simulator ended for {} {}".format(time, cpu.cpuType, str(cpu)))
 
+def simulation(cpu, processes, avgBurst, contextSwitch, f):
+	wait = sum([x.waiting for x in processes])/len(processes)
+	f.write("Algorithm {}\n".format(cpu.cpuType))
+	f.write("-- average CPU burst time: {0:.3f} ms\n".format(avgBurst))
+	f.write("-- average wait time: {0:.3f} ms\n".format(wait))
+	f.write("-- average turnaround time: {0:.3f} ms\n".format(avgBurst + contextSwitch))
+	f.write("-- total number of context switches: {}\n".format(cpu.switches))
+	f.write("-- total number of preemptions: {}\n".format(cpu.preemptions))
+
 if __name__ == "__main__":
 	r = Rand48(0)
 	seed = int(sys.argv[1])
@@ -58,6 +67,8 @@ if __name__ == "__main__":
 	alpha = float(sys.argv[6]) if len(sys.argv) > 6 else 0.0
 	timeSlice = int(sys.argv[7]) if len(sys.argv) > 7 else 99999
 	rr = sys.argv[8] if len(sys.argv) > 8 else "END"
+
+	totalBursts = []
 
 	processes = []
 	maxATime = 0
@@ -77,6 +88,7 @@ if __name__ == "__main__":
 			while x > randMax or x == -1:
 				x = -math.log(rand.drand())/lambdaa
 			cpuBursts.append(math.ceil(x))
+			totalBursts.append(math.ceil(x))
 			## One less I/O burst than cpu burst
 			if j < numBursts -1:
 				## Exponential random for I/O burst
@@ -86,6 +98,7 @@ if __name__ == "__main__":
 				ioBursts.append(math.ceil(x))
 		maxATime = max(maxATime, aTime)
 		processes.append(process(chr(ord("A") + i), cpuBursts, ioBursts, aTime, tau))
+	avgBurst = sum(totalBursts)/len(totalBursts)
 
 	f= open("simout.txt","w+")
 
@@ -94,70 +107,39 @@ if __name__ == "__main__":
 	##
 
 	cpu = cpuSJF(contextSwitch, alpha)
-	run(cpu, copy.deepcopy(processes), maxATime)
+	sjfProcesses = copy.deepcopy(processes)
+	run(cpu, sjfProcesses, maxATime)
 	print()
-
-	avgBurst = sum(cpu.bursts)/len(cpu.bursts)
-	avgTotals = sum(cpu.totals)/len(cpu.totals)
-
-	f.write("Algorithm SJF\n")
-	f.write("-- average CPU burst time: {0:.3f} ms\n".format(avgBurst))
-	f.write("-- average wait time: {0:.3f} ms\n".format(avgTotals))	# Actually record wait time
-	f.write("-- average turnaround time: {0:.3f} ms\n".format(avgBurst + contextSwitch))
-	f.write("-- total number of context switches: {}\n".format(cpu.switches))
-	f.write("-- total number of preemptions: 0\n")
+	simulation(cpu, sjfProcesses, avgBurst, contextSwitch, f)
 
 	####
 	### SRT
 	##
 
 	cpu = cpuSRT(contextSwitch, alpha)
-	run(cpu, copy.deepcopy(processes), maxATime)
+	srtProcesses = copy.deepcopy(processes)
+	run(cpu, srtProcesses, maxATime)
 	print()
+	simulation(cpu, srtProcesses, avgBurst, contextSwitch, f)
 
-	avgBurst = sum(cpu.bursts)/len(cpu.bursts)
-	avgTotals = sum(cpu.totals)/len(cpu.totals)
-
-	f.write("Algorithm SRT\n")
-	f.write("-- average CPU burst time: {0:.3f} ms\n".format(avgBurst))
-	f.write("-- average wait time: {0:.3f} ms\n".format(avgTotals))	# Actually record wait time
-	f.write("-- average turnaround time: {0:.3f} ms\n".format(avgBurst + contextSwitch))
-	f.write("-- total number of context switches: {}\n".format(cpu.switches))
-	f.write("-- total number of preemptions: 0\n")
 
 	####
 	### FCFS
 	##
 
 	cpu = cpuFCFS(contextSwitch, alpha)
-	run(cpu, copy.deepcopy(processes), maxATime)
+	fcfsProcesses = copy.deepcopy(processes)
+	run(cpu, fcfsProcesses, maxATime)
 	print()
-
-	avgBurst = sum(cpu.bursts)/len(cpu.bursts)
-	avgTotals = sum(cpu.totals)/len(cpu.totals)
-
-	f.write("Algorithm FCFS\n")
-	f.write("-- average CPU burst time: {0:.3f} ms\n".format(avgBurst))
-	f.write("-- average wait time: {0:.3f} ms\n".format(avgTotals))	# Actually record wait time
-	f.write("-- average turnaround time: {0:.3f} ms\n".format(avgBurst + contextSwitch))
-	f.write("-- total number of context switches: {}\n".format(cpu.switches))
-	f.write("-- total number of preemptions: 0\n")
+	simulation(cpu, fcfsProcesses, avgBurst, contextSwitch, f)
 
 	####
 	### RR
 	##
 
 	cpu = cpuRR(contextSwitch, alpha, timeSlice, rr)
-	run(cpu, copy.deepcopy(processes), maxATime)
-
-	avgBurst = sum(cpu.bursts)/len(cpu.bursts)
-	avgTotals = sum(cpu.totals)/len(cpu.totals)
-
-	f.write("Algorithm RR\n")
-	f.write("-- average CPU burst time: {0:.3f} ms\n".format(avgBurst))
-	f.write("-- average wait time: {0:.3f} ms\n".format(avgTotals))	# Actually record wait time
-	f.write("-- average turnaround time: {0:.3f} ms\n".format(avgBurst + contextSwitch))
-	f.write("-- total number of context switches: {}\n".format(cpu.switches))
-	f.write("-- total number of preemptions: 0\n")
+	rrProcesses = copy.deepcopy(processes)
+	run(cpu, rrProcesses, maxATime)
+	simulation(cpu, rrProcesses, avgBurst, contextSwitch, f)
 
 	f.close()

@@ -8,10 +8,8 @@ class cpu:
 		self.switching = 0		# keep track of time left switching
 		self.switchingOut = None
 		# Simulation variables
-		self.bursts = []		# keep track of all burst times for averaging
 		self.switches = 0		# keep track of number of switches
 		self.preemptions = 0	# keep track of numer of preemptions
-		self.totals = []		# keep track of wait times TODO: This does not work
 		# Variables for recalculating tau
 		self.alpha = alpha
 
@@ -89,7 +87,6 @@ class cpuFCFS(cpu):
 						print("time {}ms: Process {} started using the CPU for {}ms burst {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
 					self.switching =+ self.switchTime // 2
 					self.switches += 1
-					self.bursts.append(r.cpuBursts[0])
 			# If process is running (not None) decrement process burst time
 			r = self.running
 			if not r is None:
@@ -105,8 +102,10 @@ class cpuFCFS(cpu):
 						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
 						self.switchingOut = r
 					else:
-						self.totals.append(time - r.arrivalTime)
 						print("time {}ms: Process {} terminated {}".format(time+1, r.uID, str(self)))
+		# Increment waiting for processes in ready queue
+		for r in [r for r in self.ready if not r is self.switchingOut]:
+			r.waiting += 1
 		# Decrement time of everything in waiting
 		for w in [w for w in self.wait if not w is self.switchingOut]:
 			w.ioBursts[0] -= 1
@@ -145,7 +144,6 @@ class cpuSJF(cpu):
 						print("time {}ms: Process {} started using the CPU for {}ms burst {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
 					self.switching =+ self.switchTime // 2
 					self.switches += 1
-					self.bursts.append(r.cpuBursts[0])
 					r.updateLastBurst()
 			# If process is running (not None) decrement process burst time
 			r = self.running
@@ -164,8 +162,10 @@ class cpuSJF(cpu):
 						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
 						self.switchingOut = r
 					else:
-						self.totals.append(time - r.arrivalTime)
 						print("time {}ms: Process {} terminated {}".format(time+1, r.uID, str(self)))
+		# Increment waiting for processes in ready queue
+		for r in [r for r in self.ready if not r is self.switchingOut]:
+			r.waiting += 1
 		# Decrement time of everything in waiting
 		for w in [w for w in self.wait if not w is self.switchingOut]:
 			w.ioBursts[0] -= 1
@@ -211,7 +211,6 @@ class cpuSRT(cpu):
 						if time < 1000:
 							print("time {}ms: Process {} started using the CPU for {}ms burst {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
 						self.burstDict[r.uID] = r.cpuBursts[0]
-						self.bursts.append(r.cpuBursts[0])					
 						r.updateLastBurst()
 					self.switching =+ self.switchTime // 2
 					self.switches += 1
@@ -232,8 +231,10 @@ class cpuSRT(cpu):
 						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
 						self.switchingOut = r
 					else:
-						self.totals.append(time - r.arrivalTime)
 						print("time {}ms: Process {} terminated {}".format(time+1, r.uID, str(self)))
+		# Increment waiting for processes in ready queue
+		for r in [r for r in self.ready if not r is self.switchingOut]:
+			r.waiting += 1
 		# Decrement time of everything in waiting
 		for w in [w for w in self.wait if not w is self.switchingOut]:
 			w.ioBursts[0] -= 1
@@ -287,7 +288,6 @@ class cpuRR(cpu):
 							print("time {}ms: Process {} started using the CPU for {}ms burst {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
 						self.switching =+ self.switchTime // 2
 						self.switches += 1
-						self.bursts.append(r.cpuBursts[0])
 				# If process is running (not None) decrement process burst time
 				r = self.running
 				if not r is None:
@@ -303,7 +303,6 @@ class cpuRR(cpu):
 							self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
 							self.switchingOut = r
 						else:
-							self.totals.append(time - r.arrivalTime)
 							print("time {}ms: Process {} terminated {}".format(time+1, r.uID, str(self)))
 			##If Round Robin process are added to END
 			else:
@@ -319,7 +318,6 @@ class cpuRR(cpu):
 							print("time {}ms: Process {} started using the CPU for {}ms burst {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
 						self.switching =+ self.switchTime // 2
 						self.switches += 1
-						self.bursts.append(r.cpuBursts[0])
 				# If process is running (not None) decrement process burst time
 				r = self.running
 				if not r is None:
@@ -335,9 +333,10 @@ class cpuRR(cpu):
 							self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
 							self.switchingOut = r
 						else:
-							self.totals.append(time - r.arrivalTime)
 							print("time {}ms: Process {} terminated {}".format(time+1, r.uID, str(self)))				
-				
+		# Increment waiting for processes in ready queue
+		for r in [r for r in self.ready if not r is self.switchingOut]:
+			r.waiting += 1
 		# Decrement time of everything in waiting
 		for w in [w for w in self.wait if not w is self.switchingOut]:
 			w.ioBursts[0] -= 1
