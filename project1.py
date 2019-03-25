@@ -33,7 +33,10 @@ def run(cpu, processes, maxATime):
 		for process in processes:
 			if process.arrivalTime == time:
 				cpu.add(process)
-				print("time {}ms: Process {} arrived; added to ready queue {}".format(time, process.uID, str(cpu)))
+				if cpu.cpuType in ["FCFS", "RR"]:
+					print("time {}ms: Process {} arrived; added to ready queue {}".format(time, process.uID, str(cpu)))
+				else:
+					print("time {}ms: Process {} (tau {}ms) arrived; added to ready queue {}".format(time, process.uID, process.tau, str(cpu)))
 		cpu.update(time)
 		time += 1
 	print("time {}ms: Simulator ended for {} {}".format(time, cpu.cpuType, str(cpu)))
@@ -44,6 +47,7 @@ if __name__ == "__main__":
 	rand = Rand48(0)
 	rand.srand(seed)
 	lambdaa = float(sys.argv[2])
+	tau = math.ceil(1/lambdaa)
 	randMax = int(sys.argv[3])
 	numProcesses = int(sys.argv[4])
 	contextSwitch = int(sys.argv[5])
@@ -76,7 +80,7 @@ if __name__ == "__main__":
 					x = -math.log(rand.drand())/lambdaa
 				ioBursts.append(math.ceil(x))
 		maxATime = max(maxATime, aTime)
-		processes.append(process(chr(ord("A") + i), cpuBursts, ioBursts, aTime))
+		processes.append(process(chr(ord("A") + i), cpuBursts, ioBursts, aTime, tau))
 
 	f= open("simout.txt","w+")
 
@@ -84,7 +88,7 @@ if __name__ == "__main__":
 	### SJF
 	##
 
-	cpu = cpuSJF(contextSwitch)
+	cpu = cpuSJF(contextSwitch, alpha)
 	run(cpu, copy.deepcopy(processes), maxATime)
 	print()
 
@@ -102,7 +106,7 @@ if __name__ == "__main__":
 	### SRT
 	##
 
-	cpu = cpuSRT(contextSwitch)
+	cpu = cpuSRT(contextSwitch, alpha)
 	run(cpu, copy.deepcopy(processes), maxATime)
 	print()
 
@@ -120,7 +124,7 @@ if __name__ == "__main__":
 	### FCFS
 	##
 
-	cpu = cpuFCFS(contextSwitch)
+	cpu = cpuFCFS(contextSwitch, alpha)
 	run(cpu, copy.deepcopy(processes), maxATime)
 	print()
 
@@ -137,7 +141,7 @@ if __name__ == "__main__":
 	### RR
 	##
 
-	cpu = cpuRR(contextSwitch, int(sys.argv[7]), sys.argv[8] if len(sys.argv) == 9 else "END")
+	cpu = cpuRR(contextSwitch, alpha, int(sys.argv[7]), sys.argv[8] if len(sys.argv) == 9 else "END")
 	run(cpu, copy.deepcopy(processes), maxATime)
 
 	# avgBurst = 0

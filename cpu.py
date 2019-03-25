@@ -1,6 +1,6 @@
 
 class cpu:
-	def __init__(self, switchTime):
+	def __init__(self, switchTime, alpha):
 		self.running = None 	# Running process
 		self.ready = []			# Ready processes
 		self.wait = []			# I/0 blocked processes
@@ -11,6 +11,8 @@ class cpu:
 		self.bursts = []		# keep track of all burst times for averaging
 		self.switches = 0		# keep track of number of switches
 		self.preemptions = 0	# keep track of numer of preemptions
+		# Variables for recalculating tau
+		self.alpha = alpha
 
 	def isDone(self):
 		if(len(self.ready) == 0 and len(self.wait) == 0) and self.running is None and self.switchingOut is None and self.switching == 0:
@@ -64,8 +66,8 @@ class cpu:
 		return ret
 
 class cpuFCFS(cpu):
-	def __init__(self, switchTime):
-		super().__init__(switchTime)
+	def __init__(self, switchTime, alpha):
+		super().__init__(switchTime, alpha)
 		self.cpuType = "FCFS"
 
 	def update(self, time):
@@ -119,8 +121,8 @@ class cpuFCFS(cpu):
 		return 1
 
 class cpuSJF(cpu):
-	def __init__(self, switchTime):
-		super().__init__(switchTime)
+	def __init__(self, switchTime, alpha):
+		super().__init__(switchTime, alpha)
 		self.cpuType = "SJF"
 
 	def update(self, time):
@@ -152,8 +154,10 @@ class cpuSJF(cpu):
 					r.cpuBurstFinished()
 					self.running = None
 					if not r.isDone(time):
+						r.recalculateTau(self.alpha)
 						if time < 1000:
 							print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time+1, r.uID, len(r.cpuBursts), str(self)))
+							print("time {}ms: Recalculated tau = {}ms for process {} {}".format(time+1, r.tau, r.uID, str(self)))
 							print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time+1, r.uID, time+1+r.ioBursts[0]+self.switchTime//2, str(self)))
 						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
 						self.switchingOut = r
@@ -168,16 +172,16 @@ class cpuSJF(cpu):
 				self.ready.append(w)
 				self.wait.remove(w)
 				if time < 1000:
-					print("time {}ms: Process {} completed I/O; added to ready queue {}".format(time+1, w.uID, str(self)))
+					print("time {}ms: Process {} (tau {}ms) completed I/O; added to ready queue {}".format(time+1, w.uID, w.tau, str(self)))
 
 	def add(self, process):
 		self.ready.append(process)
-		self.ready = sorted(self.ready, key=lambda x: sum(x.cpuBursts))
+		self.ready = sorted(self.ready, key=lambda x: x.tau * len(x.cpuBursts))
 		return 1
 
 class cpuSRT(cpu):
-	def __init__(self, switchTime):
-		super().__init__(switchTime)
+	def __init__(self, switchTime, alpha):
+		super().__init__(switchTime, alpha)
 		self.cpuType = "SRT"
 
 	def update(self, time):
@@ -188,6 +192,7 @@ class cpuSRT(cpu):
 		else:
 			self.switchingOut = None
 			# If no process if running context switch the next process in
+			self.ready = sorted(self.ready, key=lambda x: sum(x.cpuBursts))
 			r = self.running
 			if r is None:
 				if len(self.ready) > 0:
@@ -208,8 +213,10 @@ class cpuSRT(cpu):
 					r.cpuBurstFinished()
 					self.running = None
 					if not r.isDone(time):
+						r.recalculateTau(self.alpha)
 						if time < 1000:
 							print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time+1, r.uID, len(r.cpuBursts), str(self)))
+							print("time {}ms: Recalculated tau = {}ms for process {} {}".format(time+1, r.tau, r.uID, str(self)))
 							print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time+1, r.uID, time+1+r.ioBursts[0]+self.switchTime//2, str(self)))
 						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
 						self.switchingOut = r
@@ -224,16 +231,16 @@ class cpuSRT(cpu):
 				self.ready.append(w)
 				self.wait.remove(w)
 				if time < 1000:
-					print("time {}ms: Process {} completed I/O; added to ready queue {}".format(time+1, w.uID, str(self)))
+					print("time {}ms: Process {} (tau {}ms) completed I/O; added to ready queue {}".format(time+1, w.uID, w.tau, str(self)))
 
 	def add(self, process):
 		self.ready.append(process)
-		self.ready = sorted(self.ready, key=lambda x: sum(x.cpuBursts), reverse=False)
+		self.ready = sorted(self.ready, key=lambda x: x.tau * len(x.cpuBursts))
 		return 1
 
 class cpuRR(cpu):
-	def __init__(self, switchTime, timeSlice, rr):
-		super().__init__(switchTime)
+	def __init__(self, switchTime, alpha, timeSlice, rr):
+		super().__init__(switchTime, alpha)
 		self.cpuType = "RR"
 		self.timeSlice = timeSlice
 		self.rr = rr # 'BEGINNING OR END'
