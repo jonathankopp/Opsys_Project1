@@ -15,7 +15,7 @@ class process:
 		self.lastBurst = self.cpuBursts[0]
 
 	def recalculateTau(self, alpha):
-		self.tau = math.floor((alpha * self.lastBurst) + ((1-alpha) * self.tau))
+		self.tau = math.ceil((alpha * self.lastBurst) + ((1-alpha) * self.tau))
 
 	def isDone(self, time):
 		if(len(self.ioBursts) == 0 and len(self.cpuBursts) == 0):
