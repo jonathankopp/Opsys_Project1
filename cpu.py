@@ -1,3 +1,5 @@
+import time as sleep
+
 class cpu:
 	def __init__(self, switchTime):
 		self.running = None 	# Running process
@@ -5,13 +7,14 @@ class cpu:
 		self.wait = []			# I/0 blocked processes
 		self.switchTime = switchTime	# Context switch time
 		self.switching = 0		# keep track of time left switching
+		self.switchingOut = None
 		# Simulation variables
 		self.bursts = []		# keep track of all burst times for averaging
 		self.switches = 0		# keep track of number of switches
 		self.preemptions = 0	# keep track of numer of preemptions
 
 	def isDone(self):
-		if(len(self.ready) == 0 and len(self.wait) == 0) and self.running is None:
+		if(len(self.ready) == 0 and len(self.wait) == 0) and self.running is None and self.switchingOut is None and self.switching == 0:
 			return True
 		return False
 
@@ -67,44 +70,50 @@ class cpuFCFS(cpu):
 		self.cpuType = "FCFS"
 
 	def update(self, time):
-		# If no process if running context switch the next process in
-		r = self.running
-		if r is None:
-			if len(self.ready) > 0:
-				r = self.ready[0]
-				print("time {}ms: Process {} started using CPU for {}ms burst {}".format(time, r.uID, r.cpuBursts[0], str(self)))
-				self.running = r
-				self.ready.remove(r)
-				self.switching = self.switchTime
-				self.switches += 1
-				self.bursts.append(r.cpuBursts[0])
 		# If process is switching decrement switch time
-		wait = []
-		if self.switching >= 0:
+		if self.switching > 0:
 			self.switching -= 1
 		# If process is not switching, decrement process burst time
 		else:
+			self.switchingOut = None
+			# If no process if running context switch the next process in
 			r = self.running
+			if r is None:
+				if len(self.ready) > 0:
+					r = self.ready[0]
+					self.running = r
+					self.ready.remove(r)
+					if time < 1000:
+						print("time {}ms: Process {} started using the CPU for {}ms burst {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
+					self.switching =+ self.switchTime // 2
+					self.switches += 1
+					self.bursts.append(r.cpuBursts[0])
 			# If process is running (not None) decrement process burst time
+			r = self.running
 			if not r is None:
 				r.cpuBursts[0] -=1
 				if r.cpuBursts[0] == 0:
+					self.switching =+ self.switchTime // 2
 					r.cpuBurstFinished()
-					print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time, r.uID, len(r.cpuBursts), str(self)))
 					self.running = None
 					if not r.isDone(time):
-						print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time, r.uID, time + r.ioBursts[0], str(self)))
-						self.wait.append(r)
-						wait.append(r)
+						if time < 1000:
+							print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time, r.uID, len(r.cpuBursts), str(self)))
+							print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time, r.uID, time + r.ioBursts[0], str(self)))
+						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
+						self.switchingOut = r
+					else:
+						print("time {}ms: Process {} terminated {}".format(time, r.uID, str(self)))
 		# Decrement time of everything in waiting
-		for w in [w for w in self.wait if not w in wait]:
+		for w in [w for w in self.wait if not w is self.switchingOut]:
 			w.ioBursts[0] -= 1
 			#TODO: Tiebreakers for processes finishing at the same time
 			if w.ioBursts[0] == 0:
 				w.ioBurstFinished()
-				print("time {}ms: Process {} completed I/0; added to ready queue {}".format(time, w.uID, str(self)))
 				self.ready.append(w)
 				self.wait.remove(w)
+				if time < 1000:
+					print("time {}ms: Process {} completed I/O; added to ready queue {}".format(time, w.uID, str(self)))
 
 	def add(self, process):
 		self.ready.append(process)
@@ -113,9 +122,53 @@ class cpuFCFS(cpu):
 class cpuSJF(cpu):
 	def __init__(self, switchTime):
 		super().__init__(switchTime)
+		self.cpuType = "SJF"
 
 	def update(self, time):
-		pass
+		# If process is switching decrement switch time
+		if self.switching > 0:
+			self.switching -= 1
+		# If process is not switching, decrement process burst time
+		else:
+			self.switchingOut = None
+			# If no process if running context switch the next process in
+			r = self.running
+			if r is None:
+				if len(self.ready) > 0:
+					r = self.ready[0]
+					self.running = r
+					self.ready.remove(r)
+					if time < 1000:
+						print("time {}ms: Process {} started using the CPU for {}ms burst {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
+					self.switching =+ self.switchTime // 2
+					self.switches += 1
+					self.bursts.append(r.cpuBursts[0])
+			# If process is running (not None) decrement process burst time
+			r = self.running
+			if not r is None:
+				r.cpuBursts[0] -=1
+				if r.cpuBursts[0] == 0:
+					self.switching =+ self.switchTime // 2
+					r.cpuBurstFinished()
+					self.running = None
+					if not r.isDone(time):
+						if time < 1000:
+							print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time, r.uID, len(r.cpuBursts), str(self)))
+							print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time, r.uID, time + r.ioBursts[0], str(self)))
+						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
+						self.switchingOut = r
+					else:
+						print("time {}ms: Process {} terminated {}".format(time, r.uID, str(self)))
+		# Decrement time of everything in waiting
+		for w in [w for w in self.wait if not w is self.switchingOut]:
+			w.ioBursts[0] -= 1
+			#TODO: Tiebreakers for processes finishing at the same time
+			if w.ioBursts[0] == 0:
+				w.ioBurstFinished()
+				self.ready.append(w)
+				self.wait.remove(w)
+				if time < 1000:
+					print("time {}ms: Process {} completed I/O; added to ready queue {}".format(time, w.uID, str(self)))
 
 	def add(self, process):
 		self.ready.append(process)
@@ -125,23 +178,111 @@ class cpuSJF(cpu):
 class cpuSRT(cpu):
 	def __init__(self, switchTime):
 		super().__init__(switchTime)
+		self.cpuType = "SRT"
 
 	def update(self, time):
-		pass
+		# If process is switching decrement switch time
+		if self.switching > 0:
+			self.switching -= 1
+		# If process is not switching, decrement process burst time
+		else:
+			self.switchingOut = None
+			# If no process if running context switch the next process in
+			r = self.running
+			if r is None:
+				if len(self.ready) > 0:
+					r = self.ready[0]
+					self.running = r
+					self.ready.remove(r)
+					if time < 1000:
+						print("time {}ms: Process {} started using the CPU for {}ms burst {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
+					self.switching =+ self.switchTime // 2
+					self.switches += 1
+					self.bursts.append(r.cpuBursts[0])
+			# If process is running (not None) decrement process burst time
+			r = self.running
+			if not r is None:
+				r.cpuBursts[0] -=1
+				if r.cpuBursts[0] == 0:
+					self.switching =+ self.switchTime // 2
+					r.cpuBurstFinished()
+					self.running = None
+					if not r.isDone(time):
+						if time < 1000:
+							print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time, r.uID, len(r.cpuBursts), str(self)))
+							print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time, r.uID, time + r.ioBursts[0], str(self)))
+						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
+						self.switchingOut = r
+					else:
+						print("time {}ms: Process {} terminated {}".format(time, r.uID, str(self)))
+		# Decrement time of everything in waiting
+		for w in [w for w in self.wait if not w is self.switchingOut]:
+			w.ioBursts[0] -= 1
+			#TODO: Tiebreakers for processes finishing at the same time
+			if w.ioBursts[0] == 0:
+				w.ioBurstFinished()
+				self.ready.append(w)
+				self.wait.remove(w)
+				if time < 1000:
+					print("time {}ms: Process {} completed I/O; added to ready queue {}".format(time, w.uID, str(self)))
 
 	def add(self, process):
 		self.ready.append(process)
-		self.ready = sorted(self.ready, key=lambda x: x.timeRemaining, reverse=False)
+		self.ready = sorted(self.ready, key=lambda x: sum(x.cpuBursts), reverse=False)
 		return 1
 
 class cpuRR(cpu):
 	def __init__(self, switchTime, timeSlice, rr):
 		super().__init__(switchTime)
+		self.cpuType = "RR"
 		self.timeSlice = timeSlice
 		self.rr = rr # 'BEGINNING OR END'
 
 	def update(self, time):
-		pass
+		# If process is switching decrement switch time
+		if self.switching > 0:
+			self.switching -= 1
+		# If process is not switching, decrement process burst time
+		else:
+			self.switchingOut = None
+			# If no process if running context switch the next process in
+			r = self.running
+			if r is None:
+				if len(self.ready) > 0:
+					r = self.ready[0]
+					self.running = r
+					self.ready.remove(r)
+					if time < 1000:
+						print("time {}ms: Process {} started using the CPU for {}ms burst {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
+					self.switching =+ self.switchTime // 2
+					self.switches += 1
+					self.bursts.append(r.cpuBursts[0])
+			# If process is running (not None) decrement process burst time
+			r = self.running
+			if not r is None:
+				r.cpuBursts[0] -=1
+				if r.cpuBursts[0] == 0:
+					self.switching =+ self.switchTime // 2
+					r.cpuBurstFinished()
+					self.running = None
+					if not r.isDone(time):
+						if time < 1000:
+							print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time, r.uID, len(r.cpuBursts), str(self)))
+							print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time, r.uID, time + r.ioBursts[0], str(self)))
+						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
+						self.switchingOut = r
+					else:
+						print("time {}ms: Process {} terminated {}".format(time, r.uID, str(self)))
+		# Decrement time of everything in waiting
+		for w in [w for w in self.wait if not w is self.switchingOut]:
+			w.ioBursts[0] -= 1
+			#TODO: Tiebreakers for processes finishing at the same time
+			if w.ioBursts[0] == 0:
+				w.ioBurstFinished()
+				self.ready.append(w)
+				self.wait.remove(w)
+				if time < 1000:
+					print("time {}ms: Process {} completed I/O; added to ready queue {}".format(time, w.uID, str(self)))
 
 	def add(self, process):
 		self.ready.append(process)

@@ -24,14 +24,19 @@ class Rand48(object):
         return self.next() / 2**48
 
 def run(cpu, processes, maxATime):
+	for process in sorted(processes, key=lambda x: x.arrivalTime):
+		print("Process {} [NEW] (arrival time {} ms) {} CPU bursts".format(process.uID, process.arrivalTime, len(process.cpuBursts)))
+
 	time = 0
+	print("time 0ms: Simulator started for {} {}".format(cpu.cpuType, str(cpu)))
 	while not cpu.isDone() or time <= maxATime:
-		cpu.update(time)
 		for process in processes:
 			if process.arrivalTime == time:
 				cpu.add(process)
-				print("Process {} [NEW] (arrival time {} ms) {} CPU bursts".format(process.uID, time, len(process.cpuBursts)))
+				print("time {}ms: Process {} arrived; added to ready queue {}".format(time, process.uID, str(cpu)))
+		cpu.update(time)
 		time += 1
+	print("time {}ms: Simulator ended for {} {}".format(time, cpu.cpuType, str(cpu)))
 
 if __name__ == "__main__":
 	r = Rand48(0)
@@ -80,10 +85,11 @@ if __name__ == "__main__":
 	##
 
 	cpu = cpuSJF(contextSwitch)
-	# run(cpu, copy.deepcopy(processes), maxATime)
+	run(cpu, copy.deepcopy(processes), maxATime)
+	print()
 
-	avgBurst = 0
-	# avgBurst = sum(cpu.bursts)/len(cpu.bursts)
+	# avgBurst = 0
+	avgBurst = sum(cpu.bursts)/len(cpu.bursts)
 
 	f.write("Algorithm SJF\n")
 	f.write("-- average CPU burst time: {0:.3f} ms\n".format(avgBurst))
@@ -97,10 +103,11 @@ if __name__ == "__main__":
 	##
 
 	cpu = cpuSRT(contextSwitch)
-	# run(cpu, copy.deepcopy(processes), maxATime)
+	run(cpu, copy.deepcopy(processes), maxATime)
+	print()
 
-	avgBurst = 0
-	# avgBurst = sum(cpu.bursts)/len(cpu.bursts)
+	# avgBurst = 0
+	avgBurst = sum(cpu.bursts)/len(cpu.bursts)
 
 	f.write("Algorithm SRT\n")
 	f.write("-- average CPU burst time: {0:.3f} ms\n".format(avgBurst))
@@ -115,6 +122,7 @@ if __name__ == "__main__":
 
 	cpu = cpuFCFS(contextSwitch)
 	run(cpu, copy.deepcopy(processes), maxATime)
+	print()
 
 	avgBurst = sum(cpu.bursts)/len(cpu.bursts)
 
@@ -130,10 +138,10 @@ if __name__ == "__main__":
 	##
 
 	cpu = cpuRR(contextSwitch, int(sys.argv[7]), sys.argv[8] if len(sys.argv) == 9 else "END")
-	# run(cpu, copy.deepcopy(processes), maxATime)
+	run(cpu, copy.deepcopy(processes), maxATime)
 
-	avgBurst = 0
-	# avgBurst = sum(cpu.bursts)/len(cpu.bursts)
+	# avgBurst = 0
+	avgBurst = sum(cpu.bursts)/len(cpu.bursts)
 
 	f.write("Algorithm RR\n")
 	f.write("-- average CPU burst time: {0:.3f} ms\n".format(avgBurst))
