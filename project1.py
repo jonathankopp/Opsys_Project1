@@ -55,7 +55,8 @@ if __name__ == "__main__":
 	numProcesses = int(sys.argv[4])
 	contextSwitch = int(sys.argv[5])
 	alpha = float(sys.argv[6]) if len(sys.argv) > 6 else 0.0
-	rr = sys.argv[7] if len(sys.argv) > 7 else "END"
+	timeSlice = int(sys.argv[7]) if len(sys.argv) > 7 else 99999
+	rr = sys.argv[8] if len(sys.argv) > 7 else "END"
 
 	processes = []
 	maxATime = 0
@@ -145,7 +146,7 @@ if __name__ == "__main__":
 	### RR
 	##
 
-	cpu = cpuRR(contextSwitch, alpha, int(sys.argv[7]), sys.argv[8] if len(sys.argv) == 9 else "END")
+	cpu = cpuRR(contextSwitch, alpha, timeSlice, rr)
 	run(cpu, copy.deepcopy(processes), maxATime)
 
 	avgBurst = sum(cpu.bursts)/len(cpu.bursts)
