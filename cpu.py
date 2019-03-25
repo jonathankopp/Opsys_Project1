@@ -211,10 +211,10 @@ class cpuSRT(cpu):
 						if time < 1000:
 							print("time {}ms: Process {} started using the CPU for {}ms burst {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
 						self.burstDict[r.uID] = r.cpuBursts[0]
+						self.bursts.append(r.cpuBursts[0])					
+						r.updateLastBurst()
 					self.switching =+ self.switchTime // 2
 					self.switches += 1
-					self.bursts.append(r.cpuBursts[0])					
-					r.updateLastBurst()
 			# If process is running (not None) decrement process burst time
 			r = self.running
 			if not r is None:
@@ -246,8 +246,8 @@ class cpuSRT(cpu):
 				if (not self.running is None) and (w.tau < self.running.tau - (self.burstDict[self.running.uID] - self.running.cpuBursts[0])):
 					self.preemptions += 1
 					self.switching =+ self.switchTime // 2
-					self.add(self.running)
 					self.preempted.append(self.running)
+					self.add(self.running)
 					if time < 1000:
 						print("time {}ms: Process {} (tau {}ms) completed I/O and will preempt {} {}".format(time+1, w.uID, w.tau, self.running.uID, str(self)))
 					self.running = None
@@ -257,7 +257,7 @@ class cpuSRT(cpu):
 
 	def add(self, process):
 		self.ready.append(process)
-		self.ready = sorted(self.ready, key=lambda x: (x.tau - (self.burstDict[self.running.uID] - self.running.cpuBursts[0]) if x is self.running else x.tau, x.uID))
+		self.ready = sorted(self.ready, key=lambda x: (x.tau - (self.burstDict[x.uID] - x.cpuBursts[0]) if x in self.preempted else x.tau, x.uID))
 		return 1
 
 class cpuRR(cpu):
