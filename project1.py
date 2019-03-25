@@ -24,8 +24,11 @@ class Rand48(object):
         return self.next() / 2**48
 
 def run(cpu, processes, maxATime):
-	for process in sorted(processes, key=lambda x: x.arrivalTime):
-		print("Process {} [NEW] (arrival time {} ms) {} CPU bursts".format(process.uID, process.arrivalTime, len(process.cpuBursts)))
+	for process in processes:
+		if len(process.cpuBursts) == 1:
+			print("Process {} [NEW] (arrival time {} ms) 1 CPU burst".format(process.uID, process.arrivalTime))
+		else:
+			print("Process {} [NEW] (arrival time {} ms) {} CPU bursts".format(process.uID, process.arrivalTime, len(process.cpuBursts)))
 
 	time = 0
 	print("time 0ms: Simulator started for {} {}".format(cpu.cpuType, str(cpu)))
@@ -92,12 +95,12 @@ if __name__ == "__main__":
 	run(cpu, copy.deepcopy(processes), maxATime)
 	print()
 
-	# avgBurst = 0
 	avgBurst = sum(cpu.bursts)/len(cpu.bursts)
+	avgTotals = sum(cpu.totals)/len(cpu.totals)
 
 	f.write("Algorithm SJF\n")
 	f.write("-- average CPU burst time: {0:.3f} ms\n".format(avgBurst))
-	f.write("-- average wait time: 0.000 ms\n")	# Actually record wait time
+	f.write("-- average wait time: {0:.3f} ms\n".format(avgTotals))	# Actually record wait time
 	f.write("-- average turnaround time: {0:.3f} ms\n".format(avgBurst + contextSwitch))
 	f.write("-- total number of context switches: {}\n".format(cpu.switches))
 	f.write("-- total number of preemptions: 0\n")
@@ -110,12 +113,12 @@ if __name__ == "__main__":
 	run(cpu, copy.deepcopy(processes), maxATime)
 	print()
 
-	# avgBurst = 0
 	avgBurst = sum(cpu.bursts)/len(cpu.bursts)
+	avgTotals = sum(cpu.totals)/len(cpu.totals)
 
-	f.write("Algorithm SRT\n")
+	f.write("Algorithm SJF\n")
 	f.write("-- average CPU burst time: {0:.3f} ms\n".format(avgBurst))
-	f.write("-- average wait time: 0.000 ms\n")	# Actually record wait time
+	f.write("-- average wait time: {0:.3f} ms\n".format(avgTotals))	# Actually record wait time
 	f.write("-- average turnaround time: {0:.3f} ms\n".format(avgBurst + contextSwitch))
 	f.write("-- total number of context switches: {}\n".format(cpu.switches))
 	f.write("-- total number of preemptions: 0\n")
@@ -129,10 +132,11 @@ if __name__ == "__main__":
 	print()
 
 	avgBurst = sum(cpu.bursts)/len(cpu.bursts)
+	avgTotals = sum(cpu.totals)/len(cpu.totals)
 
-	f.write("Algorithm FCFS\n")
+	f.write("Algorithm SJF\n")
 	f.write("-- average CPU burst time: {0:.3f} ms\n".format(avgBurst))
-	f.write("-- average wait time: 0.000 ms\n")	# Actually record wait time
+	f.write("-- average wait time: {0:.3f} ms\n".format(avgTotals))	# Actually record wait time
 	f.write("-- average turnaround time: {0:.3f} ms\n".format(avgBurst + contextSwitch))
 	f.write("-- total number of context switches: {}\n".format(cpu.switches))
 	f.write("-- total number of preemptions: 0\n")
@@ -144,12 +148,12 @@ if __name__ == "__main__":
 	cpu = cpuRR(contextSwitch, alpha, int(sys.argv[7]), sys.argv[8] if len(sys.argv) == 9 else "END")
 	run(cpu, copy.deepcopy(processes), maxATime)
 
-	# avgBurst = 0
 	avgBurst = sum(cpu.bursts)/len(cpu.bursts)
+	avgTotals = sum(cpu.totals)/len(cpu.totals)
 
-	f.write("Algorithm RR\n")
+	f.write("Algorithm SJF\n")
 	f.write("-- average CPU burst time: {0:.3f} ms\n".format(avgBurst))
-	f.write("-- average wait time: 0.000 ms\n")	# Actually record wait time
+	f.write("-- average wait time: {0:.3f} ms\n".format(avgTotals))	# Actually record wait time
 	f.write("-- average turnaround time: {0:.3f} ms\n".format(avgBurst + contextSwitch))
 	f.write("-- total number of context switches: {}\n".format(cpu.switches))
 	f.write("-- total number of preemptions: 0\n")

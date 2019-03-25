@@ -11,6 +11,7 @@ class cpu:
 		self.bursts = []		# keep track of all burst times for averaging
 		self.switches = 0		# keep track of number of switches
 		self.preemptions = 0	# keep track of numer of preemptions
+		self.totals = []		# keep track of wait times TODO: This does not work
 		# Variables for recalculating tau
 		self.alpha = alpha
 
@@ -104,6 +105,7 @@ class cpuFCFS(cpu):
 						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
 						self.switchingOut = r
 					else:
+						self.totals.append(time - r.arrivalTime)
 						print("time {}ms: Process {} terminated {}".format(time+1, r.uID, str(self)))
 		# Decrement time of everything in waiting
 		for w in [w for w in self.wait if not w is self.switchingOut]:
@@ -133,7 +135,6 @@ class cpuSJF(cpu):
 		else:
 			self.switchingOut = None
 			# If no process if running context switch the next process in
-			self.ready = sorted(self.ready, key=lambda x: sum(x.cpuBursts))
 			r = self.running
 			if r is None:
 				if len(self.ready) > 0:
@@ -163,6 +164,7 @@ class cpuSJF(cpu):
 						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
 						self.switchingOut = r
 					else:
+						self.totals.append(time - r.arrivalTime)
 						print("time {}ms: Process {} terminated {}".format(time+1, r.uID, str(self)))
 		# Decrement time of everything in waiting
 		for w in [w for w in self.wait if not w is self.switchingOut]:
@@ -170,14 +172,14 @@ class cpuSJF(cpu):
 			#TODO: Tiebreakers for processes finishing at the same time
 			if w.ioBursts[0] == 0:
 				w.ioBurstFinished()
-				self.ready.append(w)
+				self.add(w)
 				self.wait.remove(w)
 				if time < 1000:
 					print("time {}ms: Process {} (tau {}ms) completed I/O; added to ready queue {}".format(time+1, w.uID, w.tau, str(self)))
 
 	def add(self, process):
 		self.ready.append(process)
-		self.ready = sorted(self.ready, key=lambda x: x.tau * len(x.cpuBursts))
+		self.ready = sorted(self.ready, key=lambda x: (x.tau, x.uID))
 		return 1
 
 class cpuSRT(cpu):
@@ -193,7 +195,6 @@ class cpuSRT(cpu):
 		else:
 			self.switchingOut = None
 			# If no process if running context switch the next process in
-			self.ready = sorted(self.ready, key=lambda x: sum(x.cpuBursts))
 			r = self.running
 			if r is None:
 				if len(self.ready) > 0:
@@ -223,6 +224,7 @@ class cpuSRT(cpu):
 						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
 						self.switchingOut = r
 					else:
+						self.totals.append(time - r.arrivalTime)
 						print("time {}ms: Process {} terminated {}".format(time+1, r.uID, str(self)))
 		# Decrement time of everything in waiting
 		for w in [w for w in self.wait if not w is self.switchingOut]:
@@ -230,14 +232,14 @@ class cpuSRT(cpu):
 			#TODO: Tiebreakers for processes finishing at the same time
 			if w.ioBursts[0] == 0:
 				w.ioBurstFinished()
-				self.ready.append(w)
+				self.add(w)
 				self.wait.remove(w)
 				if time < 1000:
 					print("time {}ms: Process {} (tau {}ms) completed I/O; added to ready queue {}".format(time+1, w.uID, w.tau, str(self)))
 
 	def add(self, process):
 		self.ready.append(process)
-		self.ready = sorted(self.ready, key=lambda x: x.tau * len(x.cpuBursts))
+		self.ready = sorted(self.ready, key=lambda x: (x.tau, x.uID))
 		return 1
 
 class cpuRR(cpu):
@@ -281,6 +283,7 @@ class cpuRR(cpu):
 						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
 						self.switchingOut = r
 					else:
+						self.totals.append(time - r.arrivalTime)
 						print("time {}ms: Process {} terminated {}".format(time+1, r.uID, str(self)))
 		# Decrement time of everything in waiting
 		for w in [w for w in self.wait if not w is self.switchingOut]:
