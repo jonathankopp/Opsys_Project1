@@ -273,36 +273,71 @@ class cpuRR(cpu):
 			self.switching -= 1
 		# If process is not switching, decrement process burst time
 		else:
-			self.switchingOut = None
-			# If no process if running context switch the next process in
-			r = self.running
-			if r is None:
-				if len(self.ready) > 0:
-					r = self.ready[0]
-					self.running = r
-					self.ready.remove(r)
-					if time < 1000:
-						print("time {}ms: Process {} started using the CPU for {}ms burst {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
-					self.switching =+ self.switchTime // 2
-					self.switches += 1
-					self.bursts.append(r.cpuBursts[0])
-			# If process is running (not None) decrement process burst time
-			r = self.running
-			if not r is None:
-				r.cpuBursts[0] -=1
-				if r.cpuBursts[0] == 0:
-					self.switching =+ self.switchTime // 2
-					r.cpuBurstFinished()
-					self.running = None
-					if not r.isDone(time):
+			##If Round Robin process are added to BEGINNING
+			if len(self.rr) == 9:
+				self.switchingOut = None
+				# If no process if running context switch the next process in
+				r = self.running
+				if r is None:
+					if len(self.ready) > 0:
+						r = self.ready[0]
+						self.running = r
+						self.ready.remove(r)
 						if time < 1000:
-							print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time+1, r.uID, len(r.cpuBursts), str(self)))
-							print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time+1, r.uID, time+1+r.ioBursts[0]+self.switchTime//2, str(self)))
-						self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
-						self.switchingOut = r
-					else:
-						self.totals.append(time - r.arrivalTime)
-						print("time {}ms: Process {} terminated {}".format(time+1, r.uID, str(self)))
+							print("time {}ms: Process {} started using the CPU for {}ms burst {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
+						self.switching =+ self.switchTime // 2
+						self.switches += 1
+						self.bursts.append(r.cpuBursts[0])
+				# If process is running (not None) decrement process burst time
+				r = self.running
+				if not r is None:
+					r.cpuBursts[0] -=1
+					if r.cpuBursts[0] == 0:
+						self.switching =+ self.switchTime // 2
+						r.cpuBurstFinished()
+						self.running = None
+						if not r.isDone(time):
+							if time < 1000:
+								print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time+1, r.uID, len(r.cpuBursts), str(self)))
+								print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time+1, r.uID, time+1+r.ioBursts[0]+self.switchTime//2, str(self)))
+							self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
+							self.switchingOut = r
+						else:
+							self.totals.append(time - r.arrivalTime)
+							print("time {}ms: Process {} terminated {}".format(time+1, r.uID, str(self)))
+			##If Round Robin process are added to END
+			else:
+				self.switchingOut = None
+				# If no process if running context switch the next process in
+				r = self.running
+				if r is None:
+					if len(self.ready) > 0:
+						r = self.ready[0]
+						self.running = r
+						self.ready.remove(r)
+						if time < 1000:
+							print("time {}ms: Process {} started using the CPU for {}ms burst {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
+						self.switching =+ self.switchTime // 2
+						self.switches += 1
+						self.bursts.append(r.cpuBursts[0])
+				# If process is running (not None) decrement process burst time
+				r = self.running
+				if not r is None:
+					r.cpuBursts[0] -=1
+					if r.cpuBursts[0] == 0:
+						self.switching =+ self.switchTime // 2
+						r.cpuBurstFinished()
+						self.running = None
+						if not r.isDone(time):
+							if time < 1000:
+								print("time {}ms: Process {} completed a CPU burst; {} bursts to go {}".format(time+1, r.uID, len(r.cpuBursts), str(self)))
+								print("time {}ms: Process {} switching out of CPU; will block on I/O until time {}ms {}".format(time+1, r.uID, time+1+r.ioBursts[0]+self.switchTime//2, str(self)))
+							self.wait.append(r) ## TODO: Process should not be added to wait until it is finished switching out
+							self.switchingOut = r
+						else:
+							self.totals.append(time - r.arrivalTime)
+							print("time {}ms: Process {} terminated {}".format(time+1, r.uID, str(self)))				
+				
 		# Decrement time of everything in waiting
 		for w in [w for w in self.wait if not w is self.switchingOut]:
 			w.ioBursts[0] -= 1
