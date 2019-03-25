@@ -57,7 +57,7 @@ if __name__ == "__main__":
 	contextSwitch = int(sys.argv[5])
 	alpha = float(sys.argv[6]) if len(sys.argv) > 6 else 0.0
 	timeSlice = int(sys.argv[7]) if len(sys.argv) > 7 else 99999
-	rr = sys.argv[8] if len(sys.argv) > 7 else "END"
+	rr = sys.argv[8] if len(sys.argv) > 8 else "END"
 
 	processes = []
 	maxATime = 0
