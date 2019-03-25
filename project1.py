@@ -36,10 +36,11 @@ def run(cpu, processes, maxATime):
 		for process in processes:
 			if process.arrivalTime == time:
 				cpu.add(process)
-				if cpu.cpuType in ["FCFS", "RR"]:
-					print("time {}ms: Process {} arrived; added to ready queue {}".format(time, process.uID, str(cpu)))
-				else:
-					print("time {}ms: Process {} (tau {}ms) arrived; added to ready queue {}".format(time, process.uID, process.tau, str(cpu)))
+				if time < 1000:
+					if cpu.cpuType in ["FCFS", "RR"]:
+						print("time {}ms: Process {} arrived; added to ready queue {}".format(time, process.uID, str(cpu)))
+					else:
+						print("time {}ms: Process {} (tau {}ms) arrived; added to ready queue {}".format(time, process.uID, process.tau, str(cpu)))
 		cpu.update(time)
 		time += 1
 	print("time {}ms: Simulator ended for {} {}".format(time, cpu.cpuType, str(cpu)))
@@ -116,7 +117,7 @@ if __name__ == "__main__":
 	avgBurst = sum(cpu.bursts)/len(cpu.bursts)
 	avgTotals = sum(cpu.totals)/len(cpu.totals)
 
-	f.write("Algorithm SJF\n")
+	f.write("Algorithm SRT\n")
 	f.write("-- average CPU burst time: {0:.3f} ms\n".format(avgBurst))
 	f.write("-- average wait time: {0:.3f} ms\n".format(avgTotals))	# Actually record wait time
 	f.write("-- average turnaround time: {0:.3f} ms\n".format(avgBurst + contextSwitch))
@@ -134,7 +135,7 @@ if __name__ == "__main__":
 	avgBurst = sum(cpu.bursts)/len(cpu.bursts)
 	avgTotals = sum(cpu.totals)/len(cpu.totals)
 
-	f.write("Algorithm SJF\n")
+	f.write("Algorithm FCFS\n")
 	f.write("-- average CPU burst time: {0:.3f} ms\n".format(avgBurst))
 	f.write("-- average wait time: {0:.3f} ms\n".format(avgTotals))	# Actually record wait time
 	f.write("-- average turnaround time: {0:.3f} ms\n".format(avgBurst + contextSwitch))
@@ -151,7 +152,7 @@ if __name__ == "__main__":
 	avgBurst = sum(cpu.bursts)/len(cpu.bursts)
 	avgTotals = sum(cpu.totals)/len(cpu.totals)
 
-	f.write("Algorithm SJF\n")
+	f.write("Algorithm RR\n")
 	f.write("-- average CPU burst time: {0:.3f} ms\n".format(avgBurst))
 	f.write("-- average wait time: {0:.3f} ms\n".format(avgTotals))	# Actually record wait time
 	f.write("-- average turnaround time: {0:.3f} ms\n".format(avgBurst + contextSwitch))

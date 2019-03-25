@@ -187,6 +187,7 @@ class cpuSRT(cpu):
 		super().__init__(switchTime, alpha)
 		self.cpuType = "SRT"
 		self.preempted = []
+		self.burstDict = {}
 
 	def update(self, time):
 		# If process is switching decrement switch time
@@ -209,9 +210,10 @@ class cpuSRT(cpu):
 					else:
 						if time < 1000:
 							print("time {}ms: Process {} started using the CPU for {}ms burst {}".format(time + self.switchTime//2, r.uID, r.cpuBursts[0], str(self)))
+						self.burstDict[r.uID] = r.cpuBursts[0]
 					self.switching =+ self.switchTime // 2
 					self.switches += 1
-					self.bursts.append(r.cpuBursts[0])
+					self.bursts.append(r.cpuBursts[0])					
 					r.updateLastBurst()
 			# If process is running (not None) decrement process burst time
 			r = self.running
@@ -241,7 +243,7 @@ class cpuSRT(cpu):
 				self.add(w)
 				self.wait.remove(w)
 				# Handle preemptions
-				if (not self.running is None) and (w.tau < self.running.tau - (self.bursts[-1] - self.running.cpuBursts[0])):
+				if (not self.running is None) and (w.tau < self.running.tau - (self.burstDict[self.running.uID] - self.running.cpuBursts[0])):
 					self.preemptions += 1
 					self.switching =+ self.switchTime // 2
 					self.add(self.running)
