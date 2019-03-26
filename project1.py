@@ -43,7 +43,7 @@ def run(cpu, processes, maxATime):
 						print("time {}ms: Process {} (tau {}ms) arrived; added to ready queue {}".format(time, process.uID, process.tau, str(cpu)))
 		cpu.update(time)
 		time += 1
-	print("time {}ms: Simulator ended for {} {}".format(time, cpu.cpuType, str(cpu)))
+	print("time {}ms: Simulator ended for {} {}".format(time-1, cpu.cpuType, str(cpu)))
 
 def simulation(cpu, processes, avgBurst, contextSwitch, f):
 	wait = sum([x.waiting for x in processes])/len(processes)
